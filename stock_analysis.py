@@ -27,9 +27,11 @@ def main (args):
     twse_list = tw_stock.get_twse_list() #download TWSE list
 
     try:
-       if (args[1]=="1"):
-           print("下載精選股資料")
-           download_stock(1)
+        if (args[1]=="1"):
+            print("下載精選股資料")
+            download_stock(1)
+        else:
+            download_single_stock(args[1])			
     except:
         print("下載上市櫃待分析股資料")  
         # 建立 2 個子執行緒
@@ -41,7 +43,7 @@ def main (args):
         # 等待所有子執行緒結束
         for i in range(2):
           threads[i].join()      
-
+       
     print('Done')
     
     
@@ -246,6 +248,64 @@ def download_stock(input):
         #    time.sleep(40) 
         '''
     #print('Done')
+
+    
+def download_single_stock(input):    
+    print("download_single_stock=",input)	
+    stock_no = str(input)
+
+    PACKAGE_DIRECTORY = os.path.abspath('.')
+    PACKAGE_DIRECTORY = PACKAGE_DIRECTORY + '\data'
+
+    download_months = 12
+
+    today_date = datetime.now() #現在時間
+    this_year = today_date.year
+    this_month = today_date.month
+
+    month_end = str (this_year-1911)+'/'+ "{0:0=2d}".format(this_month)+'/' +'01' ## format is yyyy/mm/dd 轉民國
+
+    if (this_month<=download_months):
+        month_from = this_month+12-download_months
+        year_from = this_year-1
+    else:
+        month_from = this_month-download_months
+        year_from = this_year
+
+    month_begin = str (this_year-1-1911)+'/'+ "{0:0=2d}".format(this_month)+'/' +'01' ## format is yyyy/mm/dd 轉民國
+
+    gc = pygsheets.authorize(service_file='PythonUpload-cfde37284cdc.json')
+
+    # Open spreadsheet and then workseet
+    sh = gc.open('Stock_PythonUpload_analysis')
+    print('Stock_PythonUpload_analysis Open')
+
+    stock_zero = [['' for i in range(9)] for j in range(300)]
+ 
+    year_from_new = year_from
+    month_from_new = month_from 
+
+    wks_list = sh.worksheets()
+	
+    wks=sh.worksheet_by_title("Analyze_twse")	 
+    print(year_from_new,month_from_new,stock_no)        
+    print('download.................')
+
+    stock_data = tw_stock.fetch_from(year_from_new,month_from_new,stock_no)     # 獲取至今日之股票資料
+
+
+    df_new = pd.DataFrame(stock_data, columns=['date','volume','amount','open','high','low','close','spread','Quantity']) 
+    
+    wks.update_values(crange='A2:I310', values=stock_zero) # update a range of values with a cell list or matrix 
+
+    time.sleep(1)		
+        
+    df_new2_2_list=DF2List(df_new)
+      
+    wks.update_values(crange='A2:I290', values=df_new2_2_list) # update a range of values with a cell list or matrix 
+    print('download_single_stock finish')                                
+       
+
 
 if __name__ == '__main__':
     main (sys.argv)
