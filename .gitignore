@@ -1,0 +1,7 @@
+PythonUpload-cfde37284cdc.json
+__pycache__/
+build/
+data/
+dist/
+old/
+*.spec
