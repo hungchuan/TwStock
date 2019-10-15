@@ -9,6 +9,7 @@ import csv
 import numpy as np
 import pandas as pd
 import threading
+import pdb
 
 def DF2List(df_in):
     train_data = np.array(df_in)#np.ndarray()
@@ -32,7 +33,7 @@ def main (args):
             download_stock(1)
         else:
             download_single_stock(args[1])			
-    except:
+    except:    
         print("下載上市櫃待分析股資料")  
         # 建立 2 個子執行緒
         threads = []
@@ -147,6 +148,7 @@ def download_stock(input):
             month_from_new = month_from
 
         #print('df_csv3 = ',df_csv3)
+        #pdb.set_trace()
         
         if (sel=='2'): 
             wks=sh.worksheet_by_title("Analyze_twse")	
@@ -179,7 +181,7 @@ def download_stock(input):
         df_new2.to_csv(writefile,index=0)
         print("writefile=",writefile)
         #print('df_new2 = ',df_new2)
-        
+        #pdb.set_trace()
         
         '''
         stock_data_row=len(df_new2)
@@ -228,8 +230,18 @@ def download_stock(input):
                     Good_Stock_wks = sh_good.worksheet_by_title(Stock_list[i][1])
                 except:
                     Good_Stock_wks = sh_good.add_worksheet(Stock_list[i][1],rows=300,cols=10,index=0)    
-                    
-                Good_Stock_wks.update_values(crange='A2:I310', values=df_new2_2_list) # update a range of values with a cell list or matrix        
+                
+                try:        
+                    Good_Stock_wks.update_values(crange='A2:I310', values=stock_zero) # update a range of values with a cell list or matrix 
+                except:
+                    continue
+            
+                time.sleep(1)		   
+                
+                try: 
+                    Good_Stock_wks.update_values(crange='A2:I310', values=df_new2_2_list) # update a range of values with a cell list or matrix        
+                except:
+                    continue
 
         
         print('Time = ',datetime.now())	
