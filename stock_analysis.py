@@ -10,6 +10,14 @@ import numpy as np
 import pandas as pd
 import threading
 import pdb
+import GS_RW as gs
+from corporation import download_corporation
+
+Analyze_col = 0
+Analyze_row = 0
+list_col = 0
+list_row = 0
+
 
 def DF2List(df_in):
     train_data = np.array(df_in)#np.ndarray()
@@ -21,11 +29,27 @@ def job(num):
   for i in range(5):
     print("Child thread:", num)
     time.sleep(num)
+   
 
   
 def main (args):
 
+    global Analyze_col
+    global Analyze_row
+    global list_col
+    global list_row
+
+    config_df=gs.download_from_google("Stock_PythonUpload_analysis","config")
+
+    Analyze_col = config_df.iloc[0][0]
+    Analyze_row = config_df.iloc[0][1]
+    list_col = config_df.iloc[0][2]
+    list_row = config_df.iloc[0][3]
+
+    print('config_df=',config_df)
+
     twse_list = tw_stock.get_twse_list() #download TWSE list
+    download_corporation()
 
     try:
         if (args[1]=="1"):
@@ -48,9 +72,14 @@ def main (args):
     print('Done')
     
     
-def download_stock(input):    
-    print(input)	
-    sel = str(input)
+def download_stock(input_num):    
+    global Analyze_col
+    global Analyze_row
+    global list_col
+    global list_row
+    
+    print(input_num)	
+    sel = str(input_num)
 
     PACKAGE_DIRECTORY = os.path.abspath('.')
     PACKAGE_DIRECTORY = PACKAGE_DIRECTORY + '\data'
@@ -106,8 +135,7 @@ def download_stock(input):
     else:    
         wks = sh.worksheet_by_title("list")
 
-
-    Stock_list = wks.get_values(start=(2,1), end=(999,2), returnas='matrix')
+    Stock_list = wks.get_values(start=(int(list_row),1), end=(999,2), returnas='matrix')
     print(Stock_list)
 
     array_row=len(Stock_list)
@@ -207,7 +235,7 @@ def download_stock(input):
             continue
             
         if (sel=='2' or sel=='3'):
-            result_list = wks.get_values(start=(300,34), end=(300,64), returnas='matrix')
+            result_list = wks.get_values(start=(int(Analyze_row),int(Analyze_col)), end=(int(Analyze_row),int(Analyze_col)+32), returnas='matrix')
             analysis_list[i]=result_list[0]
             #df_Stock_result = pd.DataFrame(analysis_list, columns=['0','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30']) 
             #df_analysis=pd.concat([df_analysis,df_Stock_result],ignore_index=True)  
@@ -217,9 +245,9 @@ def download_stock(input):
                 wks=sh.worksheet_by_title("twse list")	
             else:
                 wks=sh.worksheet_by_title("tpex list")	
-                
-            wks.update_values(crange='D2:AI999', values=analysis_list) # update a range of values with a cell list or matrix 
-                    
+
+            print('list_row=============',list_row)            
+            wks.update_values(crange=(int(list_row),int(list_col)), values=analysis_list) # update a range of values with a cell list or matrix 
             
             sid = str(Stock_list[i][0])
             print('sid=',sid)
@@ -262,9 +290,14 @@ def download_stock(input):
     #print('Done')
 
     
-def download_single_stock(input):    
-    print("download_single_stock=",input)	
-    stock_no = str(input)
+def download_single_stock(input_num):    
+    global Analyze_col
+    global Analyze_row
+    global list_col
+    global list_row
+    
+    print("download_single_stock=",input_num)	
+    stock_no = str(input_num)
 
     PACKAGE_DIRECTORY = os.path.abspath('.')
     PACKAGE_DIRECTORY = PACKAGE_DIRECTORY + '\data'
@@ -304,7 +337,7 @@ def download_single_stock(input):
     print('download.................')
 
     stock_data = tw_stock.fetch_from(year_from_new,month_from_new,stock_no)     # 獲取至今日之股票資料
-
+    print(stock_data)
 
     df_new = pd.DataFrame(stock_data, columns=['date','volume','amount','open','high','low','close','spread','Quantity']) 
     

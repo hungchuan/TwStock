@@ -4,17 +4,19 @@ import json
 import pandas as pd
 from datetime import datetime, date
 import os
+import GS_RW as gs
 #import csv
 
 
 def get_twse(year, month, stock_id):
-    #print('get_twse')
+    print('get_twse')
+    #print(year,month,stock_id)
     date = str (year) + "{0:0=2d}".format(month) +'01' ## format is yyyymmdd
     sid = str(stock_id)
     url= 'http://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&date='+date+'&stockNo='+sid
-    #print('URL twse = ',url)
+    print('URL twse = ',url)
     res = requests.get(url)
-    #print("get_twse res=",res)
+    print("get_twse res=",res)
     smt = json.loads(res.text)     #convert data into json
     if (smt['stat']=="OK"):
         return smt['data']
@@ -23,12 +25,12 @@ def get_twse(year, month, stock_id):
 
 	
 def get_tpex(year, month, stock_id):
-    #print('get_tpex')
+    print('get_tpex')
     year = year-1911
     date = str (year)+'/'+ "{0:0=2d}".format(month)+'/'+'01' ## format is yyyymmdd
     sid = str(stock_id)
     url = 'https://www.tpex.org.tw/web/stock/aftertrading/daily_trading_info/st43_result.php?l=zh-tw&d='+date+'&stkno='+sid
-    #print('URL tpex= ',url)
+    print('URL tpex= ',url)
     res = requests.get(url)
     smt = json.loads(res.text)     #convert data into json
     return smt['aaData']
@@ -108,14 +110,14 @@ def fetch_from(year_from, month_from, stock_id):
     #print('fetch_from',year_from,month_from,stock_id)
     for year in range(year_from,dt.year+1):
         for month in range(1,13):
-            #print('year=',year)
-            #print('month=',month)
+            print('year=',year)
+            print('month=',month)
             if ((year*100+month)>=Year_month):
                 if (dt.year == year and month > dt.month) :break  # break loop while month over current month
                 sid = str(stock_id)
                 smt = smt + get_webmsg(year ,month, stock_id)           #put the data into smt
-                #print("stock_id=",stock_id,year,month)
-                #print("smt fetch_from = ",smt)
+                print("stock_id=",stock_id,year,month)
+                print("smt fetch_from = ",smt)
                 time.sleep(5)				
     return smt
 	
@@ -134,11 +136,12 @@ if __name__ == '__main__':
 	
     #twse_data = get_twse(2019,6,2330)
     #twse_data = twse_data + get_twse(2019,7,2330)
-    #print(fetch_from(2019,7,2330))
-    print(fetch_from(2018,7,1616))
+    print(fetch_from(2022,9,1616))
     #print('twse_data=',twse_data)
     #print('get_twse = ',get_twse(2019,7,2330))
     #print('get_tpex = ',get_tpex(2019,7,4939))
+    symptom_keyword_df=gs.download_from_google('Stock_PythonUpload_analysis','corporation') 
+    print(symptom_keyword_df)    
 
 '''
 url_twse ='http://www.twse.com.tw/exchangeReport/STOCK_DAY?response=json&'
